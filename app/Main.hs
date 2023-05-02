@@ -1,6 +1,7 @@
 module Main (main) where
-import           Day1
-import Day2
+import           Day1           (solve)
+import           Day2           (solve)
+import           Day3           (solve)
 
 import           Utils.Solution (Solver, showSolution)
 
@@ -10,7 +11,7 @@ main = do
   let solution = (solvers !! (day - 1)) input
   putStrLn $ showSolution solution
   where
-    day = 2
+    day = 3
 
 solvers :: [Solver]
-solvers = [Day1.solve, Day2.solve]
+solvers = [Day1.solve, Day2.solve, Day3.solve]
