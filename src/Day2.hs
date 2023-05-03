@@ -25,7 +25,7 @@ solve2 program = 100 * noun + verb
       Just result -> result
 
 runNounVerb :: Program -> Integer -> Integer -> Integer
-runNounVerb program noun verb = getMemoryAt (execProgram program') 0
+runNounVerb program noun verb = getMemoryAt (execProgram program' []) 0
   where
     program' = case program of
       (x:_:_:xs) -> x : noun : verb : xs
