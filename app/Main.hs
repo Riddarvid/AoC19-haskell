@@ -4,6 +4,7 @@ import           Day2           (solve)
 import           Day3           (solve)
 import           Day4           (solve)
 import           Day5           (solve)
+import           Day6           (solve)
 
 import           Utils.Solution (Solver, showSolution)
 
@@ -13,7 +14,7 @@ main = do
   let solution = (solvers !! (day - 1)) input
   putStrLn $ showSolution solution
   where
-    day = 5
+    day = 6
 
 solvers :: [Solver]
-solvers = [Day1.solve, Day2.solve, Day3.solve, Day4.solve, Day5.solve]
+solvers = [Day1.solve, Day2.solve, Day3.solve, Day4.solve, Day5.solve, Day6.solve]
