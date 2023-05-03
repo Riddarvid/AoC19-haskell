@@ -24,6 +24,7 @@ dependencies:
   - unordered-containers >= 0.2.19.1
   - mtl >= 2.2.2
   - parsec >= 3.1.15.0
+  - ghc >= 9.2.7
 
 ghc-options:
   - -Wall
