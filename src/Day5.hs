@@ -1,5 +1,5 @@
 module Day5 (solve) where
-import           Utils.Intcode  (Program, execProgram, getOutput)
+import           Utils.Intcode  (Program, evalProgram)
 import           Utils.Parsing  (parseICProgram)
 import           Utils.Solution (Solver)
 
@@ -11,10 +11,7 @@ solve input = let
   in (show part1, show part2)
 
 solve1 :: Program -> Integer
-solve1 program = head $ runTest program [1]
+solve1 program = head $ evalProgram program [1]
 
-solve2 :: Program -> [Integer]
-solve2 program = runTest program [5]
-
-runTest :: Program -> [Integer] -> [Integer]
-runTest program input = getOutput $ execProgram program input
+solve2 :: Program -> Integer
+solve2 program = head $ evalProgram program [5]

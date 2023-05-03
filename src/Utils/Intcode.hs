@@ -2,13 +2,15 @@ module Utils.Intcode (
   IntcodeComputer,
   Program,
   makeIC,
+  runProgram,
+  evalProgram,
   execProgram,
   getMemoryAt,
   getOutput
 ) where
 
-import           Control.Monad.State.Strict (State, execState, gets, modify,
-                                             unless)
+import           Control.Monad              (unless, when)
+import           Control.Monad.State.Strict (State, gets, modify, runState)
 import           Data.IntMap.Strict         (IntMap, (!))
 import qualified Data.IntMap.Strict         as IntMap
 
@@ -35,29 +37,41 @@ makeIC memory input = IC {
   icHalted = False
 }
 
+runProgram :: Program -> [Integer] -> ([Integer], IntcodeComputer)
+runProgram program = runComputer . makeIC program
+
 execProgram :: Program -> [Integer] -> IntcodeComputer
-execProgram program = execComputer . makeIC program
+execProgram program = snd . runProgram program
+
+evalProgram :: Program -> [Integer] -> [Integer]
+evalProgram program = fst . runProgram program
 
 -- Operations
 
-execComputer :: IntcodeComputer -> IntcodeComputer
-execComputer = execState execProgramState
+runComputer :: IntcodeComputer -> ([Integer], IntcodeComputer)
+runComputer = runState execProgramState
 
-execProgramState :: State IntcodeComputer ()
+execProgramState :: State IntcodeComputer [Integer]
 execProgramState = do
   halted <- gets icHalted
-  unless halted $ do
-    opCode <- readImmediate
-    let (mode, opCode') = parseModeOp opCode
-    setModeNum mode
-    case opCode' of
-      99 -> haltOp
-      1  -> addOp
-      2  -> mulOp
-      3  -> inputOp
-      4  -> outputOp
-      _  -> error $ show opCode' ++ " not yet implemented."
-    execProgramState
+  if halted
+    then gets icOutput
+    else do
+      opCode <- readImmediate
+      let (mode, opCode') = parseModeOp opCode
+      setModeNum mode
+      case opCode' of
+        99 -> haltOp
+        1  -> addOp
+        2  -> mulOp
+        3  -> inputOp
+        4  -> outputOp
+        5  -> jumpIfTrueOp
+        6  -> jumpIfFalseOp
+        7  -> lessThanOp
+        8  -> equalsOp
+        _  -> error $ show opCode' ++ " not yet implemented."
+      execProgramState
 
 haltOp :: State IntcodeComputer ()
 haltOp = modify (\s -> s{icHalted = True})
@@ -83,6 +97,30 @@ outputOp :: State IntcodeComputer ()
 outputOp = do
   val <- readParameter
   appendOutput val
+
+jumpIfTrueOp :: State IntcodeComputer ()
+jumpIfTrueOp = do
+  cond <- readParameter
+  address <- fromInteger <$> readParameter
+  unless (cond == 0) (setPointer address)
+
+jumpIfFalseOp :: State IntcodeComputer ()
+jumpIfFalseOp = do
+  cond <- readParameter
+  address <- fromInteger <$> readParameter
+  when (cond == 0) (setPointer address)
+
+lessThanOp :: State IntcodeComputer ()
+lessThanOp = do
+  val1 <- readParameter
+  val2 <- readParameter
+  writeParameter (if val1 < val2 then 1 else 0)
+
+equalsOp :: State IntcodeComputer ()
+equalsOp = do
+  val1 <- readParameter
+  val2 <- readParameter
+  writeParameter (if val1 == val2 then 1 else 0)
 
 -- General utils for interacting with IntcodeComputer state -----------------------------
 
