@@ -1,12 +1,18 @@
+{-# LANGUAGE InstanceSigs #-}
+
 module Utils.Intcode (
   IntcodeComputer,
   Program,
+  IcState(..),
   makeIC,
+  runComputer,
   runProgram,
   evalProgram,
   execProgram,
   getMemoryAt,
-  getOutput
+  getOutput,
+  getIcState,
+  setInput
 ) where
 
 import           Control.Monad              (unless, when)
@@ -20,8 +26,15 @@ data IntcodeComputer = IC {
   icModeNum :: Int,
   icInput   :: [Integer],
   icOutput  :: [Integer],
-  icHalted  :: Bool
+  icState   :: IcState
 }
+
+instance Show IntcodeComputer where
+  show :: IntcodeComputer -> String
+  show comp = "Comp, in: " ++ show (icInput comp) ++ ", out: " ++ show (icOutput comp) ++ ", " ++ show (icState comp)
+
+data IcState = Running | Halted | Waiting
+  deriving (Eq, Show)
 
 data ParameterMode = Immediate | Position
 
@@ -34,8 +47,18 @@ makeIC memory input = IC {
   icModeNum = 0,
   icInput = input,
   icOutput = [],
-  icHalted = False
+  icState = Running
 }
+
+setInput :: IntcodeComputer -> [Integer] -> IntcodeComputer
+setInput comp input = comp{
+  icInput = input,
+  icOutput = [],
+  icState = state'}
+  where
+    state' = case icState comp of
+      Waiting -> Running
+      state'' -> state''
 
 runProgram :: Program -> [Integer] -> ([Integer], IntcodeComputer)
 runProgram program = runComputer . makeIC program
@@ -53,8 +76,8 @@ runComputer = runState execProgramState
 
 execProgramState :: State IntcodeComputer [Integer]
 execProgramState = do
-  halted <- gets icHalted
-  if halted
+  icState' <- gets icState
+  if icState' == Halted || icState' == Waiting
     then gets icOutput
     else do
       opCode <- readImmediate
@@ -74,7 +97,7 @@ execProgramState = do
       execProgramState
 
 haltOp :: State IntcodeComputer ()
-haltOp = modify (\s -> s{icHalted = True})
+haltOp = modify (\s -> s{icState = Halted})
 
 addOp :: State IntcodeComputer ()
 addOp = do
@@ -91,7 +114,11 @@ mulOp = do
 inputOp :: State IntcodeComputer ()
 inputOp = do
   input <- consumeInput
-  writeParameter input
+  case input of
+    Nothing -> do
+      modify (\s -> s{icPointer = icPointer s - 1}) -- Reset instruction pointer to the state it had before.
+      modify (\s -> s{icState = Waiting})
+    Just input' -> writeParameter input'
 
 outputOp :: State IntcodeComputer ()
 outputOp = do
@@ -153,14 +180,14 @@ getParameterMode = do
   modify (\s -> s{icModeNum = modeNum `div` 10})
   return mode
 
-consumeInput :: State IntcodeComputer Integer
+consumeInput :: State IntcodeComputer (Maybe Integer)
 consumeInput = do
   input <- gets icInput
   case input of
-    []       -> error "No input remaining."
+    []       -> return Nothing
     (x : xs) -> do
       modify (\s -> s{icInput = xs})
-      return x
+      return $ Just x
 
 appendOutput :: Integer -> State IntcodeComputer ()
 appendOutput val = modify (\s -> s{icOutput = val : icOutput s})
@@ -223,3 +250,6 @@ getMemoryAt = (!) . icMemory
 
 getOutput :: IntcodeComputer -> [Integer]
 getOutput = icOutput
+
+getIcState :: IntcodeComputer -> IcState
+getIcState = icState
