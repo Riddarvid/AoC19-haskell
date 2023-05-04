@@ -26,7 +26,8 @@ data IntcodeComputer = IC {
   icModeNum :: Int,
   icInput   :: [Integer],
   icOutput  :: [Integer],
-  icState   :: IcState
+  icState   :: IcState,
+  icBase    :: Int
 }
 
 instance Show IntcodeComputer where
@@ -36,7 +37,7 @@ instance Show IntcodeComputer where
 data IcState = Running | Halted | Waiting
   deriving (Eq, Show)
 
-data ParameterMode = Immediate | Position
+data ParameterMode = Immediate | Position | Relative
 
 type Program = [Integer]
 
@@ -47,7 +48,8 @@ makeIC memory input = IC {
   icModeNum = 0,
   icInput = input,
   icOutput = [],
-  icState = Running
+  icState = Running,
+  icBase = 0
 }
 
 setInput :: IntcodeComputer -> [Integer] -> IntcodeComputer
@@ -93,6 +95,7 @@ execProgramState = do
         6  -> jumpIfFalseOp
         7  -> lessThanOp
         8  -> equalsOp
+        9  -> adjustBaseOp
         _  -> error $ show opCode' ++ " not yet implemented."
       execProgramState
 
@@ -149,6 +152,11 @@ equalsOp = do
   val2 <- readParameter
   writeParameter (if val1 == val2 then 1 else 0)
 
+adjustBaseOp :: State IntcodeComputer ()
+adjustBaseOp = do
+  offset <- fromInteger <$> readParameter
+  adjustBase offset
+
 -- General utils for interacting with IntcodeComputer state -----------------------------
 
 -- Set pointer to the given value
@@ -163,7 +171,7 @@ incPointer = modify (\s -> s{icPointer = icPointer s + 1})
 readValue :: Int -> State IntcodeComputer Integer
 readValue address = do
   memory <- gets icMemory
-  return (memory ! address)
+  return $ IntMap.findWithDefault 0 address memory
 
 -- Writes a value to the given address, without modifying the pointer.
 writeValue :: Int -> Integer -> State IntcodeComputer ()
@@ -192,6 +200,9 @@ consumeInput = do
 appendOutput :: Integer -> State IntcodeComputer ()
 appendOutput val = modify (\s -> s{icOutput = val : icOutput s})
 
+adjustBase :: Int -> State IntcodeComputer ()
+adjustBase offset = modify (\s -> s{icBase = icBase s + offset})
+
 -- Functions for interacting with parameters ------------------------------------------
 
 readParameter :: State IntcodeComputer Integer
@@ -200,6 +211,7 @@ readParameter = do
   case mode of
     Immediate -> readImmediate
     Position  -> readPosition
+    Relative  -> readRelative
 
 -- Reads a parameter using immediate addressing. Increments pointer.
 readImmediate :: State IntcodeComputer Integer
@@ -218,18 +230,36 @@ readPosition = do
   incPointer
   return val
 
+readRelative :: State IntcodeComputer Integer
+readRelative = do
+  pointer <- gets icPointer
+  address <- fromInteger <$> readValue pointer
+  base <- gets icBase
+  val <- readValue (address + base)
+  incPointer
+  return val
+
 writeParameter :: Integer -> State IntcodeComputer ()
 writeParameter val = do
   mode <- getParameterMode
   case mode of
     Immediate -> error "Writes cannot use immediate addressing."
     Position  -> writePosition val
+    Relative  -> writeRelative val
 
 writePosition :: Integer -> State IntcodeComputer ()
 writePosition val = do
   pointer <- gets icPointer
   address <- fromInteger <$> readValue pointer
   writeValue address val
+  incPointer
+
+writeRelative :: Integer -> State IntcodeComputer ()
+writeRelative val = do
+  pointer <- gets icPointer
+  address <- fromInteger <$> readValue pointer
+  base <- gets icBase
+  writeValue (address + base) val
   incPointer
 
 -- General utils not using state -------------------------
@@ -241,6 +271,7 @@ parseMode :: Int -> ParameterMode
 parseMode n = case n of
   0 -> Position
   1 -> Immediate
+  2 -> Relative
   _ -> error $ "No such parameter mode: " ++ show n
 
 -- Getters
