@@ -8,7 +8,8 @@ module Utils.Geometry (
   upV,
   rightV,
   downV,
-  leftV
+  leftV,
+  scaleBy
 ) where
 
 type Point a = (a, a)
@@ -27,6 +28,9 @@ distanceFromOrigo = distanceBetween origo
 
 move :: (Num a) => Point a -> Vector a -> Point a
 move (x, y) (dx, dy) = (x + dx, y + dy)
+
+scaleBy :: Num a => Vector a -> a -> Vector a
+scaleBy (dx, dy) s = (s * dx, s * dy)
 
 upV :: Num a => Vector a
 upV = (0, -1)

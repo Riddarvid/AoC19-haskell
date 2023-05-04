@@ -25,6 +25,7 @@ dependencies:
   - mtl >= 2.2.2
   - parsec >= 3.1.15.0
   - ghc >= 9.2.7
+  - time >= 1.11.1.1
 
 ghc-options:
   - -Wall
