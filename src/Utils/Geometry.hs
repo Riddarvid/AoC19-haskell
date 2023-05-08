@@ -9,7 +9,11 @@ module Utils.Geometry (
   rightV,
   downV,
   leftV,
-  scaleBy
+  scaleBy,
+  vectorBetween,
+  vectorLength,
+  normalize,
+  fromIntegralV
 ) where
 
 type Point a = (a, a)
@@ -32,6 +36,9 @@ move (x, y) (dx, dy) = (x + dx, y + dy)
 scaleBy :: Num a => Vector a -> a -> Vector a
 scaleBy (dx, dy) s = (s * dx, s * dy)
 
+vectorBetween :: Num a => Point a -> Point a -> Vector a
+vectorBetween (x1, y1) (x2, y2) = (x2 - x1, y2 - y1)
+
 upV :: Num a => Vector a
 upV = (0, -1)
 
@@ -43,3 +50,13 @@ downV = (0, 1)
 
 leftV :: Num a => Vector a
 leftV = (-1, 0)
+
+vectorLength :: Floating a => Vector a -> a
+vectorLength (x, y) = let
+  in sqrt (x**2 + y**2)
+
+normalize :: Floating a => Vector a -> Vector a
+normalize v = scaleBy v (1 / vectorLength v)
+
+fromIntegralV :: (Integral a, Num b) => Vector a -> Vector b
+fromIntegralV (x, y) = (fromIntegral x, fromIntegral y)

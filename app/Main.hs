@@ -1,5 +1,6 @@
 module Main (main) where
 import           Day1               (solve)
+import           Day10              (solve)
 import           Day2               (solve)
 import           Day3               (solve)
 import           Day4               (solve)
@@ -45,4 +46,5 @@ printSolution day = do
   putStrLn $ "\nSolved in " ++ show (diffUTCTime stopTime startTime)
 
 solvers :: [Solver]
-solvers = [Day1.solve, Day2.solve, Day3.solve, Day4.solve, Day5.solve, Day6.solve, Day7.solve, Day8.solve, Day9.solve]
+solvers = [Day1.solve, Day2.solve, Day3.solve, Day4.solve, Day5.solve, Day6.solve, Day7.solve,
+  Day8.solve, Day9.solve, Day10.solve]
