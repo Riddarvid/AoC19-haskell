@@ -1,7 +1,6 @@
 module Day10 (solve, laserAngle, partitionVisible, groupBy, sameAngle, group) where
 import           Utils.Solution (Solver)
 
-import           Data.HashSet   (HashSet)
 import qualified Data.HashSet   as HS
 import           Data.List      (delete, group, groupBy, maximumBy, sortOn)
 import           Data.Maybe     (catMaybes)
