@@ -31,22 +31,21 @@ solve1 asteroids = (best, nVisible asteroids best)
     best = maximumBy (comparing $ nVisible asteroids) asteroids
 
 nVisible :: [Asteroid] -> Asteroid -> Int
-nVisible asteroids target = length visible
+nVisible asteroids target = HS.size $ foldr (HS.insert . angle) HS.empty asteroids'
   where
     asteroids' = delete target asteroids
-    (visible, _) = partitionVisible target asteroids'
+    angle :: Asteroid -> Double
+    angle asteroid = let (x, y) = vectorBetween target asteroid in atan2 (fromIntegral y) (fromIntegral x)
 
 sameAngle :: (Integral a) => Vector a -> Vector a -> Bool
 sameAngle v1 v2 = laserAngle v1 == laserAngle v2
 
 laserAngle :: Integral a => Vector a -> Double
-laserAngle (x, y) = angle'''''
+laserAngle (x, y) = angle''
   where
     angle = atan2 (fromIntegral y) (fromIntegral x)
-    angle' = angle + pi -- angle' is between 0 and 2pi. 0 represents an angle pointing to the right.
-    angle''' = angle'--2 * pi - angle' -- Angle is now measured clockwise
-    angle'''' = angle''' - (pi / 2)
-    angle''''' = if angle'''' < 0 then angle'''' + 2 * pi else angle''''
+    angle' = angle + (pi / 2)
+    angle'' = if angle' < 0 then angle' + 2 * pi else angle'
 
 
 solve2 :: [Asteroid] -> Asteroid -> Integer
