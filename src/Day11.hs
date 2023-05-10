@@ -6,7 +6,6 @@ import           Control.Monad       (unless)
 import           Control.Monad.State (State, execState, gets, modify)
 import           Data.HashSet        (HashSet)
 import qualified Data.HashSet        as HS
-import           Debug.Trace         (trace)
 import           Utils.Intcode       (IntcodeComputer, Program, isHalted,
                                       makeIC, runComputer, setInput)
 import           Utils.Parsing       (parseICProgram)
