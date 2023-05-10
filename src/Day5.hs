@@ -11,7 +11,7 @@ solve input = let
   in (show part1, show part2)
 
 solve1 :: Program -> Integer
-solve1 program = head $ evalProgram program [1]
+solve1 program = last $ evalProgram program [1]
 
 solve2 :: Program -> Integer
 solve2 program = head $ evalProgram program [5]

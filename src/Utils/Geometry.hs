@@ -4,7 +4,7 @@ module Utils.Geometry (
   origo,
   distanceBetween,
   distanceFromOrigo,
-  move,
+  moveBy,
   upV,
   rightV,
   downV,
@@ -13,7 +13,9 @@ module Utils.Geometry (
   vectorBetween,
   vectorLength,
   normalize,
-  fromIntegralV
+  fromIntegralV,
+  turnLeft,
+  turnRight
 ) where
 
 type Point a = (a, a)
@@ -30,8 +32,8 @@ distanceBetween (x1, y1) (x2, y2) = abs (x1 - x2) + abs (y1 - y2)
 distanceFromOrigo :: (Num a) => Point a -> a
 distanceFromOrigo = distanceBetween origo
 
-move :: (Num a) => Point a -> Vector a -> Point a
-move (x, y) (dx, dy) = (x + dx, y + dy)
+moveBy :: (Num a) => Point a -> Vector a -> Point a
+moveBy (x, y) (dx, dy) = (x + dx, y + dy)
 
 scaleBy :: Num a => Vector a -> a -> Vector a
 scaleBy (dx, dy) s = (s * dx, s * dy)
@@ -60,3 +62,10 @@ normalize v = scaleBy v (1 / vectorLength v)
 
 fromIntegralV :: (Integral a, Num b) => Vector a -> Vector b
 fromIntegralV (x, y) = (fromIntegral x, fromIntegral y)
+
+-- Rotates a vector 90 degrees to the left
+turnLeft :: Num a => Vector a -> Vector a
+turnLeft (x, y) = (y, -x)
+
+turnRight :: Num a => Vector a -> Vector a
+turnRight (x, y) = (-y, x)

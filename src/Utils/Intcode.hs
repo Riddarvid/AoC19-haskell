@@ -12,7 +12,9 @@ module Utils.Intcode (
   getMemoryAt,
   getOutput,
   getIcState,
-  setInput
+  setInput,
+  isHalted,
+  isWaiting
 ) where
 
 import           Control.Monad              (unless, when)
@@ -198,7 +200,7 @@ consumeInput = do
       return $ Just x
 
 appendOutput :: Integer -> State IntcodeComputer ()
-appendOutput val = modify (\s -> s{icOutput = val : icOutput s})
+appendOutput val = modify (\s -> s{icOutput = icOutput s ++ [val]})
 
 adjustBase :: Int -> State IntcodeComputer ()
 adjustBase offset = modify (\s -> s{icBase = icBase s + offset})
@@ -284,3 +286,9 @@ getOutput = icOutput
 
 getIcState :: IntcodeComputer -> IcState
 getIcState = icState
+
+isHalted :: IntcodeComputer -> Bool
+isHalted ic = icState ic == Halted
+
+isWaiting :: IntcodeComputer -> Bool
+isWaiting ic = icState ic == Waiting

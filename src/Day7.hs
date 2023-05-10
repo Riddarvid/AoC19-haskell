@@ -110,4 +110,4 @@ connectAmp results ampId (Amp _ inputId output) = Amp comp'' inputId (output' ++
       Just inputId' -> case HM.lookup inputId' results of
         Nothing          -> []
         Just (input', _) -> input'
-    comp'' = setInput comp' (reverse input)
+    comp'' = setInput comp' input

@@ -4,7 +4,7 @@ import qualified Data.HashMap.Strict as HM
 import           Text.Parsec         (Parsec, anyChar, char, digit, many1,
                                       parse, sepBy)
 import           Utils.Geometry      (Point, distanceBetween, distanceFromOrigo,
-                                      downV, leftV, move, origo, rightV,
+                                      downV, leftV, moveBy, origo, rightV,
                                       scaleBy, upV)
 import           Utils.Solution      (Solver)
 
@@ -36,7 +36,7 @@ appendWireSegment xs (I dir dist) = WS distFromStart startPoint endPoint : xs
     (startPoint, distFromStart) = case xs of
       []             -> (origo, 0)
       (WS d s p) : _ -> (p, d + distanceBetween s p)
-    endPoint = move startPoint vector
+    endPoint = moveBy startPoint vector
     vector = case dir of
       U -> scaleBy upV dist
       R -> scaleBy rightV dist
