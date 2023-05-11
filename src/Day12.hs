@@ -60,18 +60,16 @@ totalEnergy' (Moon (P3 x y z) (P3 dx dy dz)) = pot * kin
 solve2 :: [Moon] -> Integer
 solve2 moons = lcm xCycle $ lcm yCycle zCycle
   where
-    states = iterate stepMoons moons
-    xCycle = cycleLength xPart states
-    yCycle = cycleLength yPart states
-    zCycle = cycleLength zPart states
+    xCycle = cycleLength $ map xPart moons
+    yCycle = cycleLength $ map yPart moons
+    zCycle = cycleLength $ map zPart moons
 
-cycleLength :: (Moon -> (Integer, Integer)) -> [[Moon]] -> Integer
-cycleLength moonPart states = case elemIndex startState $ tail states' of
+cycleLength :: [(Integer, Integer)] -> Integer
+cycleLength startState = case elemIndex startState states of
   Nothing  -> error "Cycle not found"
   Just res -> toInteger res + 1
   where
-    startState = head states'
-    states' = map (map moonPart) states
+    states = tail $ iterate stepPart startState
 
 xPart :: Moon -> (Integer, Integer)
 xPart (Moon (P3 x _ _) (P3 dx _ _)) = (x, dx)
@@ -84,6 +82,15 @@ zPart (Moon (P3 _ _ z) (P3 _ _ dz)) = (z, dz)
 
 -- General
 
+stepPart :: [(Integer, Integer)] -> [(Integer, Integer)]
+stepPart state = state''
+  where
+    state' = map (applyGravityPart state) state
+    state'' = map applyVelocityPart state'
+
+applyVelocityPart :: (Integer, Integer) -> (Integer, Integer)
+applyVelocityPart (pos, vel) = (pos + vel, vel)
+
 stepMoons :: [Moon] -> [Moon]
 stepMoons moons = moons''
   where
@@ -94,6 +101,17 @@ applyGravity :: [Moon] -> Moon -> Moon
 applyGravity moons moon@(Moon pos velocity) = Moon pos velocity'
   where
     velocity' = foldr (moveBy . gravityVector moon) velocity moons
+
+applyGravityPart :: [(Integer, Integer)] -> (Integer, Integer) -> (Integer, Integer)
+applyGravityPart moons (pos, vel) = (pos, vel')
+  where
+    vel' = vel + sum (map (gravityPartVector pos) moons)
+
+gravityPartVector :: Integer -> (Integer, Integer) -> Integer
+gravityPartVector pos (pos', _) = case compare pos pos' of
+  LT -> 1
+  EQ -> 0
+  GT -> (-1)
 
 gravityVector :: Moon -> Moon -> Point3 Integer
 gravityVector (Moon pStart _) (Moon pEnd _) = f <$> pStart <*> pEnd
