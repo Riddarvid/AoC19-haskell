@@ -4,6 +4,7 @@ module Day12 (solve) where
 import           Data.Hashable  (Hashable (hashWithSalt))
 import           Data.HashSet   (HashSet)
 import qualified Data.HashSet   as HS
+import           Data.List      (elemIndex)
 import           Text.Parsec    (parse, string)
 import           Utils.Geometry (Point3 (P3), Vector3, moveBy)
 import           Utils.Parsing  (numberParser)
@@ -67,7 +68,12 @@ solve2 moons = lcm xCycle $ lcm yCycle zCycle
     zCycle = cycleLength zPart states
 
 cycleLength :: (Moon -> (Integer, Integer)) -> [[Moon]] -> Integer
-cycleLength moonPart = toInteger . length . takeUnique . map (map moonPart)
+cycleLength moonPart states = case elemIndex startState $ tail states' of
+  Nothing  -> error "Cycle not found"
+  Just res -> toInteger res + 1
+  where
+    startState = head states'
+    states' = map (map moonPart) states
 
 xPart :: Moon -> (Integer, Integer)
 xPart (Moon (P3 x _ _) (P3 dx _ _)) = (x, dx)
