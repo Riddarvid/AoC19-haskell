@@ -2,8 +2,6 @@
 
 module Day12 (solve) where
 import           Data.Hashable  (Hashable (hashWithSalt))
-import           Data.HashSet   (HashSet)
-import qualified Data.HashSet   as HS
 import           Data.List      (elemIndex)
 import           Text.Parsec    (parse, string)
 import           Utils.Geometry (Point3 (P3), Vector3, moveBy)
@@ -83,15 +81,6 @@ yPart (Moon (P3 _ y _) (P3 _ dy _)) = (y, dy)
 
 zPart :: Moon -> (Integer, Integer)
 zPart (Moon (P3 _ _ z) (P3 _ _ dz)) = (z, dz)
-
-takeUnique :: (Hashable a) =>[a] -> [a]
-takeUnique = takeUnique' HS.empty
-
-takeUnique' :: Hashable a => HashSet a -> [a] -> [a]
-takeUnique' _ [] = []
-takeUnique' unique (x : xs)
-  | HS.member x unique = []
-  | otherwise = x : takeUnique' (HS.insert x unique) xs
 
 -- General
 
