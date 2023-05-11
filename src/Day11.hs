@@ -1,11 +1,11 @@
 module Day11 (solve) where
-import           Utils.Geometry      (Point, Vector, moveBy, turnLeft,
-                                      turnRight, upV)
 
 import           Control.Monad       (unless)
 import           Control.Monad.State (State, execState, gets, modify)
 import           Data.HashSet        (HashSet)
 import qualified Data.HashSet        as HS
+import           Utils.Geometry      (Point (moveBy, origo), Point2, Vector2,
+                                      turnLeft, turnRight, upV)
 import           Utils.Intcode       (IntcodeComputer, Program, isHalted,
                                       makeIC, runComputer, setInput)
 import           Utils.Parsing       (parseICProgram)
@@ -13,10 +13,10 @@ import           Utils.Show          (showPoints)
 import           Utils.Solution      (Solver)
 
 data RobotState = RS {
-  rPos         :: Point Integer,
-  rHeading     :: Vector Integer,
-  rEverPainted :: HashSet (Point Integer),
-  rWhite       :: HashSet (Point Integer),
+  rPos         :: Point2 Integer,
+  rHeading     :: Vector2 Integer,
+  rEverPainted :: HashSet (Point2 Integer),
+  rWhite       :: HashSet (Point2 Integer),
   rIntCode     :: IntcodeComputer
 }
 
@@ -43,7 +43,7 @@ solve2 program = showPainted $ rWhite endState
     startState = makeStartState program True
     endState = execState paintCycle startState
 
-showPainted :: HashSet (Point Integer) -> String
+showPainted :: HashSet (Point2 Integer) -> String
 showPainted = showPoints
 
 -- General
@@ -59,7 +59,7 @@ makeStartState program startOnWhite = RS {
     (painted, whites) = if startOnWhite
       then (HS.singleton startPos, HS.singleton startPos)
       else (HS.empty, HS.empty)
-    startPos = (0, 0)
+    startPos = origo
 
 currentColor :: State RobotState Integer
 currentColor = do

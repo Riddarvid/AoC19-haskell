@@ -3,3 +3,5 @@
 stack.yaml.lock
 .vscode/
 *.cabal
+*.prof
+*.svg

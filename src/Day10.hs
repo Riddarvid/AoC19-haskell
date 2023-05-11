@@ -5,7 +5,8 @@ import qualified Data.HashSet   as HS
 import           Data.List      (delete, group, groupBy, maximumBy, sortOn)
 import           Data.Maybe     (catMaybes)
 import           Data.Ord       (comparing)
-import           Utils.Geometry (Point, Vector, distanceBetween, vectorBetween)
+import           Utils.Geometry (Point (distanceBetween, vectorBetween),
+                                 Point2 (P2), Vector2)
 
 solve :: Solver
 solve input = let
@@ -14,13 +15,13 @@ solve input = let
   part2 = solve2 asteroids best
   in (show part1, show part2)
 
-type Asteroid = Point Integer
+type Asteroid = Point2 Integer
 
 parseAsteroids :: String -> [Asteroid]
 parseAsteroids = concat . zipWith parseAsteroidRow [0..] . lines
 
 parseAsteroidRow :: Integer -> String -> [Asteroid]
-parseAsteroidRow y row = catMaybes $ zipWith (\x c -> if c == '#' then Just (x, y) else Nothing) [0..] row
+parseAsteroidRow y row = catMaybes $ zipWith (\x c -> if c == '#' then Just (P2 x y) else Nothing) [0..] row
 
 ---------------------
 
@@ -34,13 +35,13 @@ nVisible asteroids target = HS.size $ foldr (HS.insert . angle) HS.empty asteroi
   where
     asteroids' = delete target asteroids
     angle :: Asteroid -> Double
-    angle asteroid = let (x, y) = vectorBetween target asteroid in atan2 (fromIntegral y) (fromIntegral x)
+    angle asteroid = let (P2 x y) = vectorBetween target asteroid in atan2 (fromIntegral y) (fromIntegral x)
 
-sameAngle :: (Integral a) => Vector a -> Vector a -> Bool
+sameAngle :: (Integral a) => Vector2 a -> Vector2 a -> Bool
 sameAngle v1 v2 = laserAngle v1 == laserAngle v2
 
-laserAngle :: Integral a => Vector a -> Double
-laserAngle (x, y) = angle''
+laserAngle :: Integral a => Vector2 a -> Double
+laserAngle (P2 x y) = angle''
   where
     angle = atan2 (fromIntegral y) (fromIntegral x)
     angle' = angle + (pi / 2)
@@ -51,7 +52,7 @@ solve2 :: [Asteroid] -> Asteroid -> Integer
 solve2 asteroids station = x * 100 + y
   where
     asteroids' = delete station asteroids
-    (x, y) = laserSort station asteroids' !! 199
+    (P2 x y) = laserSort station asteroids' !! 199
 
 laserSort :: Asteroid -> [Asteroid] -> [Asteroid]
 laserSort _ [] = []

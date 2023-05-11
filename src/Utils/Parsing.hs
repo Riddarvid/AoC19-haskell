@@ -1,5 +1,6 @@
 module Utils.Parsing (
-  parseICProgram
+  parseICProgram,
+  numberParser
 ) where
 import           Text.Parsec (Parsec, char, digit, many1, optionMaybe, parse,
                               sepBy)

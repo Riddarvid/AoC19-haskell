@@ -3,9 +3,9 @@ import           Data.HashMap.Strict (HashMap)
 import qualified Data.HashMap.Strict as HM
 import           Text.Parsec         (Parsec, anyChar, char, digit, many1,
                                       parse, sepBy)
-import           Utils.Geometry      (Point, distanceBetween, distanceFromOrigo,
-                                      downV, leftV, moveBy, origo, rightV,
-                                      scaleBy, upV)
+import           Utils.Geometry      (Point2 (P2), distanceBetween,
+                                      distanceFromOrigo, downV, leftV, moveBy,
+                                      origo, rightV, scaleBy, upV)
 import           Utils.Solution      (Solver)
 
 solve :: Solver
@@ -22,7 +22,7 @@ data Direction = U | R | D | L
 
 data Instruction = I Direction Integer
 
-data WireSegment = WS Integer (Point Integer) (Point Integer)
+data WireSegment = WS Integer (Point2 Integer) (Point2 Integer)
   deriving (Show)
 
 type Wire = [WireSegment]
@@ -86,11 +86,11 @@ solve2 wire1 wire2 = minimum $ HM.elems intersections
 
 -- General ----------------------------------
 
-type Intersection = (Point Integer, Integer)
+type Intersection = (Point2 Integer, Integer)
 
-findIntersections :: Wire -> Wire -> HashMap (Point Integer) Integer
+findIntersections :: Wire -> Wire -> HashMap (Point2 Integer) Integer
 findIntersections wire1 wire2 =
-  HM.delete (0, 0) $ HM.fromList $ concatMap (findIntersections' wire2) wire1
+  HM.delete (P2 0 0) $ HM.fromList $ concatMap (findIntersections' wire2) wire1
 
 findIntersections' :: Wire -> WireSegment -> [Intersection]
 findIntersections' wire wireSeg = concatMap (findIntersection wireSeg) wire
@@ -103,20 +103,20 @@ findIntersection w1 w2
 -- The worst, most unreadable code I've ever written
 findIntersection' :: WireSegment -> WireSegment -> [Intersection]
 findIntersection'
-  w1@(WS dist1 (startX1, startY1) (endX1, endY1))
-  w2@(WS dist2 (startX2, startY2) (endX2, endY2))
+  w1@(WS dist1 (P2 startX1 startY1) (P2 endX1 endY1))
+  w2@(WS dist2 (P2 startX2 startY2) (P2 endX2 endY2))
   | isHorizontal w1 && isHorizontal w2 =
-    [((x, startY1), baseDist + abs (x - startX1) + abs (x - startX2)) |
+    [(P2 x startY1, baseDist + abs (x - startX1) + abs (x - startX2)) |
       x <- [max minX1 minX2 .. min maxX1 maxX2]]
   | isVertical w1 && isVertical w2 =
-    [((startX1, y), baseDist + abs (y - startY1) + abs (y - startY2)) |
+    [(P2 startX1 y, baseDist + abs (y - startY1) + abs (y - startY2)) |
       y <- [max minY1 minY2 .. min maxY1 maxY2]]
   | isHorizontal w1 && isVertical w2 = let
     dist' = baseDist + abs (startX1 - startX2) + abs (startY1 - startY2)
-    in [((startX2, startY1), dist')]
+    in [(P2 startX2 startY1, dist')]
   | otherwise = let
     dist' = baseDist + abs (startX1 - startX2) + abs (startY1 - startY2)
-    in [((startX1, startY2), dist')]
+    in [(P2 startX1 startY2, dist')]
   where
     baseDist = dist1 + dist2
 
@@ -131,13 +131,13 @@ findIntersection'
     minY2 = min startY2 endY2
 
 isHorizontal :: WireSegment -> Bool
-isHorizontal (WS _ (_, y1) (_, y2)) = y1 == y2
+isHorizontal (WS _ (P2 _ y1) (P2 _ y2)) = y1 == y2
 
 isVertical :: WireSegment -> Bool
 isVertical = not . isHorizontal
 
 intersects :: WireSegment -> WireSegment -> Bool
-intersects (WS _ (startX1, startY1) (endX1, endY1)) (WS _ (startX2, startY2) (endX2, endY2)) =
+intersects (WS _ (P2 startX1 startY1) (P2 endX1 endY1)) (WS _ (P2 startX2 startY2) (P2 endX2 endY2)) =
   overlapsX && overlapsY
   where
     maxX1 = max startX1 endX1
