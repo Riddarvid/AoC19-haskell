@@ -54,6 +54,7 @@ makeIC memory input = IC {
   icBase = 0
 }
 
+-- Sets the input of the computer, resets output and sets state to running if it was waiting.
 setInput :: IntcodeComputer -> [Integer] -> IntcodeComputer
 setInput comp input = comp{
   icInput = input,

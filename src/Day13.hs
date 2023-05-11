@@ -2,6 +2,7 @@
 
 module Day13 (
   solve,
+  GameState(..),
   TileType(..),
   Tile(..),
   getStartTiles
@@ -12,7 +13,7 @@ import qualified Data.HashSet   as HS
 import           GHC.Generics   (Generic)
 import           GHC.Utils.Misc (chunkList)
 import           Utils.Geometry (Point2 (P2))
-import           Utils.Intcode  (Program, evalProgram)
+import           Utils.Intcode  (IntcodeComputer, Program, evalProgram)
 import           Utils.Parsing  (parseICProgram)
 import           Utils.Solution (Solver)
 
@@ -26,24 +27,51 @@ data Tile = Tile (Point2 Integer) TileType
 
 instance Hashable Tile
 
+data GameState = GS {
+  gsTiles :: HashSet Tile,
+  gsScore :: Integer
+}
+
+emptyGS :: GameState
+emptyGS = GS {gsTiles = HS.empty, gsScore = 0}
+
 solve :: Solver
 solve input = let
   program = parseICProgram input
   part1 = solve1 program
   in (show part1, "")
 
-solve1 :: Program -> Int
-solve1 = HS.size . HS.filter (\(Tile _ tileType) -> tileType == Block) . getStartTiles
+-- Part 1
 
-getStartTiles :: Program -> HashSet Tile
+solve1 :: Program -> Int
+solve1 = HS.size . HS.filter (\(Tile _ tileType) -> tileType == Block) . gsTiles . getStartTiles
+
+getStartTiles :: Program -> GameState
 getStartTiles program = interpretOutput $ evalProgram program []
 
-interpretOutput :: [Integer] -> HashSet Tile
-interpretOutput = HS.fromList . map interpretOutput' . chunkList 3
+-- Part 2
 
-interpretOutput' :: [Integer] -> Tile
+solve2 :: Program -> Integer
+solve2 = undefined
+
+playGame :: IntcodeComputer -> (HashSet Tile, Integer)
+playGame ic = undefined
+
+-- General
+
+interpretOutput :: [Integer] -> GameState
+interpretOutput = foldl appendGS emptyGS . chunkList 3
+
+appendGS :: GameState -> [Integer] -> GameState
+appendGS gs output = case interpretOutput' output of
+  Left tile    -> gs{gsTiles = HS.insert tile (gsTiles gs)}
+  Right score' -> gs{gsScore = score'}
+
+interpretOutput' :: [Integer] -> Either Tile Integer
 interpretOutput' output = case output of
-  [x, y, tileId] -> Tile (P2 x y) (parseTileType tileId)
+  [x, y, tileId] -> if x == (-1) && y == 0
+    then Right tileId
+    else Left $ Tile (P2 x y) (parseTileType tileId)
   _              -> error "Output should be in chunks of three."
 
 parseTileType :: Integer -> TileType
