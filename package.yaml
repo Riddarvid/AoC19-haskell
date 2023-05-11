@@ -27,6 +27,7 @@ dependencies:
   - ghc >= 9.2.7
   - time >= 1.11.1.1
   - hashable >= 1.4.0.2
+  - gloss >= 1.13.2.2
 
 ghc-options:
   - -Wall
