@@ -1,81 +1,108 @@
-{-# LANGUAGE DeriveGeneric #-}
-
 module Day13 (
   solve,
   GameState(..),
-  TileType(..),
   Tile(..),
-  getStartTiles
+  getStartTiles,
+  runGame
 ) where
-import           Data.Hashable  (Hashable)
-import           Data.HashSet   (HashSet)
-import qualified Data.HashSet   as HS
-import           GHC.Generics   (Generic)
-import           GHC.Utils.Misc (chunkList)
-import           Utils.Geometry (Point2 (P2))
-import           Utils.Intcode  (IntcodeComputer, Program, evalProgram)
-import           Utils.Parsing  (parseICProgram)
-import           Utils.Solution (Solver)
+import           Data.HashMap.Strict (HashMap)
+import qualified Data.HashMap.Strict as HM
+import           GHC.Utils.Misc      (chunkList)
+import           Utils.Geometry      (Point (origo), Point2 (P2))
+import           Utils.Intcode       (IntcodeComputer, Program, evalProgram,
+                                      isHalted, makeIC, runComputer, setInput)
+import           Utils.Parsing       (parseICProgram)
+import           Utils.Solution      (Solver)
 
-data TileType = Empty | Wall | Block | Paddle | Ball
-  deriving (Eq, Generic, Show)
-
-instance Hashable TileType
-
-data Tile = Tile (Point2 Integer) TileType
-  deriving (Eq, Generic, Show)
-
-instance Hashable Tile
+data Tile = Empty | Wall | Block | Paddle | Ball
+  deriving (Eq, Show)
 
 data GameState = GS {
-  gsTiles :: HashSet Tile,
-  gsScore :: Integer
-}
+  gsTiles     :: HashMap (Point2 Integer) Tile,
+  gsBallPos   :: Point2 Integer,
+  gsPaddlePos :: Point2 Integer,
+  gsScore     :: Integer
+} deriving (Show)
 
 emptyGS :: GameState
-emptyGS = GS {gsTiles = HS.empty, gsScore = 0}
+emptyGS = GS {gsTiles = HM.empty, gsBallPos = origo, gsPaddlePos = origo, gsScore = 0}
 
 solve :: Solver
 solve input = let
   program = parseICProgram input
   part1 = solve1 program
-  in (show part1, "")
+  part2 = solve2 program
+  in (show part1, show part2)
 
 -- Part 1
 
 solve1 :: Program -> Int
-solve1 = HS.size . HS.filter (\(Tile _ tileType) -> tileType == Block) . gsTiles . getStartTiles
+solve1 = HM.size . HM.filter (== Block) . gsTiles . getStartTiles
 
 getStartTiles :: Program -> GameState
-getStartTiles program = interpretOutput $ evalProgram program []
+getStartTiles program = interpretOutput emptyGS $ evalProgram program []
 
 -- Part 2
 
 solve2 :: Program -> Integer
-solve2 = undefined
+solve2 = gsScore . last . runGame
 
-playGame :: IntcodeComputer -> (HashSet Tile, Integer)
-playGame ic = undefined
+runGame :: Program -> [GameState]
+runGame program = map snd states'
+  where
+    program' = case program of
+      []       -> error "Empty program"
+      (_ : xs) -> 2 : xs
+    startIC = makeIC program' []
+    states = iterate (uncurry stepGame) (startIC, emptyGS)
+    (running, halted) = span (\(ic, _) -> not $ isHalted ic) states
+    states' = running ++ [head halted]
+
+-- 1. Run computer
+-- 2. Collect output into game state
+-- 3. Provide appropriate input
+stepGame :: IntcodeComputer -> GameState -> (IntcodeComputer, GameState)
+stepGame ic gs = (ic'', gs')
+  where
+    (output, ic') = runComputer ic
+    gs' = interpretOutput gs output
+    joysticDir = determineDir gs'
+    ic'' = setInput ic' [joysticDir]
+
+determineDir :: GameState -> Integer
+determineDir gs = case compare paddleX ballX of
+  LT -> 1
+  EQ -> 0
+  GT -> (-1)
+  where
+    (P2 ballX _) = gsBallPos gs
+    (P2 paddleX _) = gsPaddlePos gs
 
 -- General
 
-interpretOutput :: [Integer] -> GameState
-interpretOutput = foldl appendGS emptyGS . chunkList 3
+interpretOutput :: GameState -> [Integer] -> GameState
+interpretOutput gs = foldl appendGS gs . chunkList 3
 
 appendGS :: GameState -> [Integer] -> GameState
 appendGS gs output = case interpretOutput' output of
-  Left tile    -> gs{gsTiles = HS.insert tile (gsTiles gs)}
-  Right score' -> gs{gsScore = score'}
+  Left (pos, tile) -> gs{
+    gsTiles = HM.insert pos tile (gsTiles gs),
+    gsBallPos = ballPos',
+    gsPaddlePos = paddlePos'}
+    where
+      ballPos' = if tile == Ball then pos else gsBallPos gs
+      paddlePos' = if tile == Paddle then pos else gsPaddlePos gs
+  Right score'     -> gs{gsScore = score'}
 
-interpretOutput' :: [Integer] -> Either Tile Integer
+interpretOutput' :: [Integer] -> Either (Point2 Integer, Tile) Integer
 interpretOutput' output = case output of
   [x, y, tileId] -> if x == (-1) && y == 0
     then Right tileId
-    else Left $ Tile (P2 x y) (parseTileType tileId)
+    else Left (P2 x y, parseTile tileId)
   _              -> error "Output should be in chunks of three."
 
-parseTileType :: Integer -> TileType
-parseTileType tileId = case tileId of
+parseTile :: Integer -> Tile
+parseTile tileId = case tileId of
   0 -> Empty
   1 -> Wall
   2 -> Block

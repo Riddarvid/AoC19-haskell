@@ -17,11 +17,11 @@ import           Control.Applicative ((<**>), (<|>))
 import           Data.Map            (Map)
 import qualified Data.Map            as Map
 import           Data.Time           (diffUTCTime, getCurrentTime)
+import           Day13.Graphics      (renderDay13part1, renderDay13part2)
 import           Options.Applicative (Parser, ParserInfo, argument, auto,
                                       execParser, fullDesc, header, help,
                                       helper, info, metavar, progDesc, short,
                                       strOption)
-import           Utils.Graphics      (renderDay13Start)
 import           Utils.Parsing       (parseICProgram)
 import           Utils.Solution      (Solver, showSolution)
 
@@ -88,11 +88,17 @@ solvers = [Day1.solve, Day2.solve, Day3.solve, Day4.solve, Day5.solve, Day6.solv
 
 -- Visualizations
 
-day13Graphical :: IO ()
-day13Graphical = do
+day13Graphical1 :: IO ()
+day13Graphical1 = do
   input <- readInput 13
   let program = parseICProgram input
-  renderDay13Start program
+  renderDay13part1 program
+
+day13Graphical2 :: IO ()
+day13Graphical2 = do
+  input <- readInput 13
+  let program = parseICProgram input
+  renderDay13part2 program
 
 displayGraphical :: String -> IO ()
 displayGraphical str = case Map.lookup str graphicalMap of
@@ -100,7 +106,7 @@ displayGraphical str = case Map.lookup str graphicalMap of
   Just vis -> vis
 
 graphicalMap :: Map String (IO ())
-graphicalMap = Map.fromList [("13.1", day13Graphical)]
+graphicalMap = Map.fromList [("13.1", day13Graphical1), ("13.2", day13Graphical2)]
 
 -- Utils ----------------------------
 
