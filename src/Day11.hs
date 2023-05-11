@@ -1,7 +1,11 @@
-module Day11 (solve) where
+module Day11 (
+  solve,
+  runRobot,
+  RobotState(..)
+) where
 
-import           Control.Monad       (unless)
-import           Control.Monad.State (State, execState, gets, modify)
+import           Control.Monad.State (State, evalState, execState, get, gets,
+                                      modify)
 import           Data.HashSet        (HashSet)
 import qualified Data.HashSet        as HS
 import           Utils.Geometry      (Point (moveBy, origo), Point2, Vector2,
@@ -18,7 +22,7 @@ data RobotState = RS {
   rEverPainted :: HashSet (Point2 Integer),
   rWhite       :: HashSet (Point2 Integer),
   rIntCode     :: IntcodeComputer
-}
+} deriving (Show)
 
 solve :: Solver
 solve input = let
@@ -45,6 +49,13 @@ solve2 program = showPainted $ rWhite endState
 
 showPainted :: HashSet (Point2 Integer) -> String
 showPainted = showPoints
+
+-- Visualization
+
+runRobot :: Program -> Bool -> [RobotState]
+runRobot program startWhite = evalState paintCycle startState
+  where
+    startState = makeStartState program startWhite
 
 -- General
 
@@ -93,19 +104,23 @@ move = do
 -- 1) If halted, done. If waiting, add current color to input.
 -- 2) Run intcode program
 -- 3) Read output, paint and move accordingly.
-paintCycle :: State RobotState ()
+paintCycle :: State RobotState [RobotState]
 paintCycle = do
+  rs <- get
   ic <- gets rIntCode
-  unless (isHalted ic) $ do
-    color <- currentColor
-    let input = [color]
-    let ic' = setInput ic input
-    let (output, ic'') = runComputer ic'
-    modify (\s -> s{rIntCode = ic''})
-    case output of
-      [color', direction] -> do
-        paint color'
-        turn direction
-        move
-        paintCycle
-      _                   -> error $ "Unrecognized output: " ++ show output
+  if isHalted ic
+    then return [rs]
+    else do
+      color <- currentColor
+      let input = [color]
+      let ic' = setInput ic input
+      let (output, ic'') = runComputer ic'
+      modify (\s -> s{rIntCode = ic''})
+      case output of
+        [color', direction] -> do
+          paint color'
+          turn direction
+          move
+          rss <- paintCycle
+          return (rs : rss)
+        _                   -> error $ "Unrecognized output: " ++ show output

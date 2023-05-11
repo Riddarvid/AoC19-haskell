@@ -7,11 +7,11 @@ import qualified Data.HashMap.Strict as HM
 import           Day13               (GameState (gsScore, gsTiles), Tile (..),
                                       getStartTiles, runGame)
 import           Graphics.Gloss      (Color, Display (InWindow), Picture,
-                                      animate, black, blue, color, display,
-                                      green, pictures, red, scale, text,
-                                      translate, white)
-import           Utils.Geometry      (Point2 (P2))
-import           Utils.Graphics      (square, tick)
+                                      animate, black, blue, display, green,
+                                      pictures, red, scale, text, translate,
+                                      white)
+import           Utils.Geometry      (Point2)
+import           Utils.Graphics      (renderSquare, tick)
 import           Utils.Intcode       (Program)
 
 day13Display :: Display
@@ -39,7 +39,7 @@ renderGS gs = scale mainScale mainScale $ tilesPicture <> scorePicture
     mainScale = 10
 
 renderScore :: Integer -> Picture
-renderScore score = translate 0 (-10) $ scale textScale textScale $ text ("Score: " ++ show score)
+renderScore score = translate 0 2 $ scale textScale textScale $ text ("Score: " ++ show score)
   where
     textScale = 0.05
 
@@ -49,10 +49,7 @@ renderTiles tiles = scale tileScale tileScale $ pictures $ map (uncurry renderTi
     tileScale = 1
 
 renderTile :: Point2 Integer -> Tile -> Picture
-renderTile (P2 x y) tile = translate x' y' $ color (tileColor tile) square
-  where
-    x' = fromIntegral x
-    y' = fromIntegral y
+renderTile p tile = renderSquare (tileColor tile) p
 
 tileColor :: Tile -> Color
 tileColor tileType = case tileType of
