@@ -68,7 +68,7 @@ fullyReduced :: Quantities -> Bool
 fullyReduced = all (\(mat, amount) -> mat == "ORE" || amount == 0) . HM.toList
 
 reduce :: Rules -> Quantities -> Quantities -> (Quantities, Quantities)
-reduce rules needed leftover = traceShowId $ case HM.toList needed' of
+reduce rules needed leftover = case HM.toList needed' of
   []           -> (needed, leftover)
   quantity : _ -> uncurry balance $ pay rules quantity needed leftover
   where
