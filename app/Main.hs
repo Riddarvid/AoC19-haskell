@@ -1,18 +1,5 @@
 module Main (main) where
-import           Day1                (solve)
-import           Day10               (solve)
-import           Day11               (solve)
-import           Day12               (solve)
-import           Day13               (solve)
-import           Day14               (solve)
-import           Day2                (solve)
-import           Day3                (solve)
-import           Day4                (solve)
-import           Day5                (solve)
-import           Day6                (solve)
-import           Day7                (solve)
-import           Day8                (solve)
-import           Day9                (solve)
+
 
 import           Control.Applicative ((<**>), (<|>))
 import           Data.Map            (Map)
@@ -24,8 +11,9 @@ import           Options.Applicative (Parser, ParserInfo, argument, auto,
                                       execParser, fullDesc, header, help,
                                       helper, info, metavar, progDesc, short,
                                       strOption)
+import           Utils.Days          (readInput, solvers)
 import           Utils.Parsing       (parseICProgram)
-import           Utils.Solution      (Solver, showSolution)
+import           Utils.Solution      (showSolution)
 
 data ProgramOpts = Textual Int | Graphical String | TextualAll
 
@@ -84,10 +72,6 @@ printSolution day = do
   stopTime <- getCurrentTime
   putStrLn $ "\nSolved in " ++ show (diffUTCTime stopTime startTime)
 
-solvers :: [Solver]
-solvers = [Day1.solve, Day2.solve, Day3.solve, Day4.solve, Day5.solve, Day6.solve, Day7.solve,
-  Day8.solve, Day9.solve, Day10.solve, Day11.solve, Day12.solve, Day13.solve, Day14.solve]
-
 -- Visualizations
 
 day11Graphical1 :: IO ()
@@ -130,6 +114,3 @@ graphicalMap = Map.fromList [
 
 dashLine :: String
 dashLine = "---------------------------------"
-
-readInput :: Int -> IO String
-readInput day = readFile ("input/input" ++ show day ++ ".txt")
