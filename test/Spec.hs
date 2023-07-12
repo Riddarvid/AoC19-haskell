@@ -1,3 +1,4 @@
+import           Control.Monad        (when)
 import           Control.Monad.Writer (MonadWriter (tell), Writer, execWriter)
 import           Utils.Days           (ExpectedResult, Input, readInput,
                                        readResults, solvers)
@@ -7,43 +8,49 @@ main :: IO ()
 main = do
   putStrLn ""
   let days = [1 .. length solvers]
-  runTests False days
+  runTests True days
 
 runTests :: Bool -> [Int] -> IO ()
-runTests onlyFailed days = do
+runTests verbose days = do
   results <- checkSolutions days
-  mapM_ putStrLn $ execWriter $ writeResults onlyFailed results
+  when verbose (printResults False results)
+  putStrLn "\n\n-----------------------------\n\n"
+  if all succeeded results
+    then do
+      putStrLn "All tests succeeded!"
+    else do
+      putStrLn "One or more tests failed:"
+      printResults True results
+
+printResults :: Bool -> [TestResult] -> IO ()
+printResults onlyFailed results = mapM_ putStrLn $ execWriter $ writeResults onlyFailed results
 
 writeResults :: Bool -> [TestResult] -> Writer [String] ()
-writeResults True results  = do
-  tell ["Failed:"]
-  mapM_ writeIfFailed results
-writeResults False results = mapM_ writeResult results
+writeResults = mapM_ . writeResult
 
-writeIfFailed :: TestResult -> Writer [String] ()
-writeIfFailed (TestResult _ Pass Pass) = return ()
-writeIfFailed (TestResult _ (NA _) Pass) = return ()
-writeIfFailed (TestResult _ Pass (NA _)) = return ()
-writeIfFailed (TestResult _ (NA _) (NA _)) = return ()
-writeIfFailed (TestResult day r1 r2) = do
+writeResult :: Bool -> TestResult -> Writer [String] ()
+writeResult onlyFailed res@(TestResult day r1 r2) = when (writeAll || testFailed res) $ do
   tell ["\nDay " ++ show day]
-  writePartIfFailed r1
-  writePartIfFailed r2
+  when (writeAll || partFailed r1) $ writePart 1 r1
+  when (writeAll || partFailed r2) $ writePart 2 r2
+  where
+    writeAll = not onlyFailed
 
-writePartIfFailed :: PartResult -> Writer [String] ()
-writePartIfFailed (Fail e a) = tell ["Part 1: expected " ++ e ++ ", got " ++ a]
-writePartIfFailed _          = return ()
+writePart :: Int -> PartResult -> Writer [String] ()
+writePart day res = tell [start ++ end]
+  where
+    start = "Part " ++ show day ++ ": "
+    end = case res of
+      Pass     -> "Passed"
+      Fail e a -> "Expected " ++ e ++ ", got " ++ a
+      NA a     -> "Result is N/A, got\n" ++ a
 
-writeResult :: TestResult -> Writer [String] ()
-writeResult (TestResult day r1 r2) = do
-  tell ["\nDay " ++ show day]
-  writePart r1
-  writePart r2
+partFailed :: PartResult -> Bool
+partFailed (Fail _ _) = False
+partFailed _          = True
 
-writePart :: PartResult -> Writer [String] ()
-writePart Pass       = tell ["Part 1: Passed"]
-writePart (Fail e a) = tell ["Part 1: expected " ++ e ++ ", got " ++ a]
-writePart (NA a)     = tell ["Part 1: result is N/A, got\n" ++ a]
+testFailed :: TestResult -> Bool
+testFailed (TestResult _ p1 p2) = partFailed p1 || partFailed p2
 
 --------------------------- Test running --------------------------------
 
@@ -76,3 +83,8 @@ maybeEquals s r = case r of
   Just r' -> if s == r'
     then Pass
     else Fail r' s
+
+succeeded :: TestResult -> Bool
+succeeded (TestResult _ (Fail _ _) _) = False
+succeeded (TestResult _ _ (Fail _ _)) = False
+succeeded _                           = True

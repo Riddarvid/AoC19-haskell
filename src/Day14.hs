@@ -1,12 +1,20 @@
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE NumericUnderscores         #-}
+
 module Day14 (solve) where
-import           Data.Foldable       (find)
-import           Data.HashMap.Strict (HashMap)
-import qualified Data.HashMap.Strict as HM
-import           Debug.Trace         (traceShow, traceShowId)
-import           Text.Parsec         (Parsec, char, letter, many1, parse, sepBy,
-                                      string)
-import           Utils.Parsing       (numberParser)
-import           Utils.Solution      (Solver)
+
+import           Control.Monad        (unless)
+import           Control.Monad.Reader (MonadReader, ReaderT (runReaderT), ask)
+import           Control.Monad.State  (MonadState, State, gets, modify,
+                                       runState)
+import           Data.Foldable        (find)
+import           Data.HashMap.Strict  (HashMap)
+import qualified Data.HashMap.Strict  as HM
+import           Text.Parsec          (Parsec, char, letter, many1, parse,
+                                       sepBy, string)
+import           Utils.Parsing        (numberParser)
+import           Utils.Search         (binaryMax)
+import           Utils.Solution       (Solver)
 
 type Quantity = (String, Integer)
 
@@ -14,13 +22,12 @@ data Product = Prod Integer [Quantity]
 
 type Rules = HashMap String Product
 
-type Quantities = HashMap String Integer
-
 solve :: Solver
 solve input = let
-  requirements = parseInput input
-  part1 = solve1 requirements
-  in (show part1, "")
+  rules = parseInput input
+  part1 = solve1 rules
+  part2 = solve2 rules
+  in (show part1, show part2)
 
 -- Parsing
 
@@ -49,51 +56,127 @@ quantityParser = do
 -- Part 1
 
 solve1 :: Rules -> Integer
-solve1 rules = case HM.lookup "ORE" $ reduceToOre rules needed of
-  Just n  -> n
-  Nothing -> error $ "No ORE found" ++ show (reduceToOre rules needed)
-  where
-    needed = HM.singleton "FUEL" 1
+solve1 rules = findOreNeeded rules 1
+
+-- Part 2
+
+solve2 :: Rules -> Integer
+solve2 rules = binaryMax (lessThanTrillion rules) 0 10_000_000
+
+lessThanTrillion :: Rules -> Integer -> Bool
+lessThanTrillion rules nFuel = findOreNeeded rules nFuel <= 1_000_000_000_000
 
 -- General
 
-reduceToOre :: Rules -> Quantities -> Quantities
-reduceToOre rules needed = case find fullyReduced $ map fst $ iterate (uncurry reduce') (needed, HM.empty) of
-  Just needed' -> needed'
-  Nothing      -> error "Not fully reduced."
+findOreNeeded :: Rules -> Integer -> Integer
+findOreNeeded rules fuel = case HM.lookup "ORE" (msNeeded ms') of
+  Nothing -> error "No ORE found."
+  Just n  -> n
   where
-    reduce' = reduce rules
+    ms' = execMaterialMonad reduceToOre rules (makeMS fuel)
 
-fullyReduced :: Quantities -> Bool
-fullyReduced = all (\(mat, amount) -> mat == "ORE" || amount == 0) . HM.toList
+-- Monad utils
 
-reduce :: Rules -> Quantities -> Quantities -> (Quantities, Quantities)
-reduce rules needed leftover = case HM.toList needed' of
-  []           -> (needed, leftover)
-  quantity : _ -> uncurry balance $ pay rules quantity needed leftover
-  where
-    needed' = HM.filterWithKey (\k _ -> k /= "ORE") needed
+data MaterialsState = MS {
+  msNeeded    :: HashMap String Integer,
+  msAvailable :: HashMap String Integer
+}
 
-pay :: Rules -> Quantity -> Quantities -> Quantities -> (Quantities, Quantities)
-pay rules (mat, amount) needed leftover = (needed'', leftover')
-  where
-    needed' = HM.delete mat needed
-    (Prod prodAmount preReqs) = case HM.lookup mat rules of
-      Nothing  -> error $ "No rule exists for: " ++ show mat
-      Just res -> res
-    nApplications = ceiling $ (fromIntegral amount :: Double) / fromIntegral prodAmount
-    leftoverAmount = nApplications * prodAmount - amount
-    leftover' = HM.insertWith (+) mat leftoverAmount leftover
-    preReqs' = map (\(m, n) -> (m, n * nApplications)) preReqs
-    needed'' = foldr (uncurry $ HM.insertWith (+)) needed' preReqs'
+makeMS :: Integer -> MaterialsState
+makeMS nFuel = MS {msNeeded = HM.singleton "FUEL" nFuel, msAvailable = HM.empty}
 
-balance :: Quantities -> Quantities -> (Quantities, Quantities)
-balance needed leftover = HM.foldrWithKey balance' (needed, leftover) needed
+newtype MaterialMonad a = MM (ReaderT Rules (State MaterialsState) a)
+  deriving (Functor, Applicative, Monad, MonadReader Rules, MonadState MaterialsState)
 
-balance' :: String -> Integer -> (Quantities, Quantities) -> (Quantities, Quantities)
-balance' mat amount (needed, leftover) = (needed', leftover')
-  where
-    leftoverAmount = HM.findWithDefault 0 mat leftover
-    reductionAmount = min leftoverAmount amount
-    needed' = HM.adjust (\n -> n - reductionAmount) mat needed
-    leftover' = HM.insertWith (-) mat reductionAmount leftover
+runMaterialMonad :: MaterialMonad a -> Rules -> MaterialsState -> (a, MaterialsState)
+runMaterialMonad (MM m) = runState . runReaderT m
+
+execMaterialMonad :: MaterialMonad a -> Rules -> MaterialsState -> MaterialsState
+execMaterialMonad m rules s = snd $ runMaterialMonad m rules s
+
+-- Monadic operations
+
+reduceToOre :: MaterialMonad ()
+reduceToOre = do
+  done <- isFullyReduced
+  unless done $ do
+    reduceSingle
+    reduceToOre
+
+isFullyReduced :: MaterialMonad Bool
+isFullyReduced = do
+  needed <- gets msNeeded
+  return $ all (\(mat, n) -> mat == "ORE" || n == 0) (HM.toList needed)
+
+askProduct :: String -> MaterialMonad Product
+askProduct mat = do
+  rules <- ask
+  case HM.lookup mat rules of
+    Nothing   -> error ("Material " ++ mat ++ " not found.")
+    Just prod -> return prod
+
+increaseNeeded :: Integer -> Quantity -> MaterialMonad ()
+increaseNeeded nProds (mat, neededSingle) = do
+  let neededInc = nProds * neededSingle
+  modify (\s -> s{msNeeded = HM.insertWith (+) mat neededInc (msNeeded s)})
+
+-- 0. Find first reduceable product.
+-- 0.5 Find production amount.
+-- 1. Decrease need for product to 0. Increase leftovers by prod amount - needed amount.
+-- 2. Increase need for ingredients according to production rules and production amount.
+-- 3. Spend leftovers.
+
+reduceSingle :: MaterialMonad ()
+reduceSingle = do
+  (mat, needed) <- findReduceable
+  nProds <- findNProds mat needed
+  produce mat nProds needed
+  pay mat nProds
+  balance
+
+findReduceable :: MaterialMonad (String, Integer)
+findReduceable = do
+  needed <- gets msNeeded
+  case find (\(mat, n) -> mat /= "ORE" && n > 0) (HM.toList needed) of
+    Nothing       -> error "No reducable material"
+    Just quantity -> return quantity
+
+-- Does not change state
+findNProds :: String -> Integer -> MaterialMonad Integer
+findNProds mat needed = do
+  (Prod prodAmountSingle _) <- askProduct mat
+  return $ ceiling $ (fromInteger needed :: Double) / fromInteger prodAmountSingle
+
+-- Changes needed and available of mat.
+produce :: String -> Integer -> Integer -> MaterialMonad ()
+produce mat nProds matNeeded = do
+  (Prod prodAmountSingle _) <- askProduct mat
+  let leftover = prodAmountSingle * nProds - matNeeded
+  modify (\s -> s{
+    msNeeded = HM.insert mat 0 (msNeeded s),
+    msAvailable = HM.insert mat leftover (msAvailable s)
+  })
+
+pay :: String -> Integer -> MaterialMonad ()
+pay mat nProds = do
+  (Prod _ quantities) <- askProduct mat
+  mapM_ (increaseNeeded nProds) quantities
+
+balance :: MaterialMonad ()
+balance = do
+  needed <- gets msNeeded
+  let neededMats = HM.keys needed
+  mapM_ balanceMaterial neededMats
+
+balanceMaterial :: String -> MaterialMonad ()
+balanceMaterial mat = do
+  needed <- gets msNeeded
+  available <- gets msAvailable
+  let neededMat = HM.lookupDefault 0 mat needed
+  let availableMat = HM.lookupDefault 0 mat available
+  let neededMat' = if neededMat > availableMat then neededMat - availableMat else 0
+  let availableMat' = if neededMat > availableMat then 0 else availableMat - neededMat
+  modify (\s -> s{
+    msNeeded = HM.insert mat neededMat' needed,
+    msAvailable = HM.insert mat availableMat' available
+  })
