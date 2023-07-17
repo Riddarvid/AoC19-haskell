@@ -12,7 +12,9 @@ import           Data.HashMap.Lazy    (HashMap)
 import qualified Data.HashMap.Lazy    as HM
 import           Utils.Geometry       (Point (moveBy), Point2 (P2), Vector2,
                                        downV, leftV, rightV, upV)
-import           Utils.Graphs         (bfs)
+import           Utils.Graphs         (BfsState (bfsNLayers),
+                                       Goal (GFull, GTarget), bfsExplore,
+                                       bfsPath)
 import           Utils.Intcode        (IntcodeComputer, Program, makeIC,
                                        runComputer, setInput)
 import           Utils.Parsing        (parseICProgram)
@@ -22,8 +24,10 @@ solve :: Solver
 solve input = let
   program = parseICProgram input
   oxygenMap = exploreMap program
-  part1 = solve1 oxygenMap
-  part2 = solve2 oxygenMap
+  adjacency = oxygenAdjacency oxygenMap
+  source = findSource oxygenMap
+  part1 = solve1 adjacency source
+  part2 = solve2 adjacency source
   in (show part1, show part2)
 
 -- Types
@@ -132,13 +136,15 @@ statusToTile _ = error "Invalid status"
 
 -- Part 1
 
-solve1 :: OxygenMap -> Int
-solve1 oxygenMap = case bfs start target (oxygenAdjacency oxygenMap) of
+type OxygenAdjacency = Pos -> [Pos]
+
+solve1 :: OxygenAdjacency -> Pos -> Int
+solve1 adjacency source = case bfsPath start target adjacency of
   Nothing   -> error "Path not found"
   Just path -> length path - 1
   where
     start = P2 0 0
-    target = findSource oxygenMap
+    target = GTarget source
 
 oxygenAdjacency :: OxygenMap -> Pos -> [Pos]
 oxygenAdjacency oxygenMap pos = let neighbors = map (moveDir pos) [North, East, South, West]
@@ -154,5 +160,7 @@ findSource oxygenMap = case find (\(_, tile) -> isSource tile) (HM.toList oxygen
 
 -- Part 2
 
-solve2 :: OxygenMap -> Integer
-solve2 _ = 0
+solve2 :: OxygenAdjacency -> Pos -> Integer
+solve2 adjacency source = case bfsExplore source GFull adjacency of
+  Nothing -> error "Search failed"
+  Just st -> bfsNLayers st - 1
