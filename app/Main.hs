@@ -7,6 +7,7 @@ import qualified Data.Map            as Map
 import           Data.Time           (diffUTCTime, getCurrentTime)
 import           Day11.Graphics      (renderDay11part1, renderDay11part2)
 import           Day13.Graphics      (renderDay13part1, renderDay13part2)
+import           Day15.Graphics      (renderRobotSearch)
 import           Options.Applicative (Parser, ParserInfo, argument, auto,
                                       execParser, fullDesc, header, help,
                                       helper, info, metavar, progDesc, short,
@@ -98,6 +99,12 @@ day13Graphical2 = do
   let program = parseICProgram input
   renderDay13part2 program
 
+day15GraphicalRobot :: IO ()
+day15GraphicalRobot = do
+  input <- readInput 15
+  let program = parseICProgram input
+  renderRobotSearch program
+
 displayGraphical :: String -> IO ()
 displayGraphical str = case Map.lookup str graphicalMap of
   Nothing  -> error $ "No visualization mapped to identifier: " ++ str
@@ -108,7 +115,8 @@ graphicalMap = Map.fromList [
   ("13.1", day13Graphical1),
   ("13.2", day13Graphical2),
   ("11.1", day11Graphical1),
-  ("11.2", day11Graphical2)]
+  ("11.2", day11Graphical2),
+  ("15R", day15GraphicalRobot)]
 
 -- Utils ----------------------------
 

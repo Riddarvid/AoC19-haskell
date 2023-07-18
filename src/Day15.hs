@@ -1,8 +1,16 @@
 {-# LANGUAGE DeriveFunctor              #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
-module Day15 (solve) where
+module Day15 (
+  solve,
+  exploreMapPath,
+  OxygenMap,
+  Tile(..),
+  Pos,
+  RobotMove(..),
+  Action(..)
+) where
 import           Control.Monad.Except (Except, MonadError (throwError),
-                                       runExcept, unless, when)
+                                       runExcept, unless)
 import           Control.Monad.Reader (MonadReader (ask, local),
                                        ReaderT (runReaderT))
 import           Control.Monad.State  (MonadState, StateT (runStateT), gets,
@@ -10,8 +18,8 @@ import           Control.Monad.State  (MonadState, StateT (runStateT), gets,
 import           Data.Foldable        (find)
 import           Data.HashMap.Lazy    (HashMap)
 import qualified Data.HashMap.Lazy    as HM
-import           Utils.Geometry       (Point (moveBy), Point2 (P2), Vector2,
-                                       downV, leftV, rightV, upV)
+import           Utils.Geometry       (Point (moveBy, origo), Point2 (P2),
+                                       Vector2, downV, leftV, rightV, upV)
 import           Utils.Graphs         (BfsState (bfsNLayers),
                                        Goal (GFull, GTarget), bfsExplore,
                                        bfsPath)
@@ -42,11 +50,15 @@ type OxygenMap = HashMap Pos Tile
 
 data OxygenState = OS {
   osOxygenMap :: OxygenMap,
-  osComputer  :: IntcodeComputer
+  osComputer  :: IntcodeComputer,
+  osPath      :: [RobotMove]
 }
 
 mkOxygenState :: Program -> OxygenState
-mkOxygenState prg = OS {osOxygenMap = HM.empty, osComputer = makeIC prg []}
+mkOxygenState prg = OS {
+  osOxygenMap = HM.empty,
+  osComputer = makeIC prg [],
+  osPath = [RobotMove origo Move]}
 
 newtype RobotMonad a = RM (ReaderT Pos (StateT OxygenState (Except String)) a)
   deriving (Functor, Applicative, Monad, MonadState OxygenState, MonadReader Pos, MonadError String)
@@ -59,6 +71,11 @@ runRobotMonad (RM m) pos oxygenState = case result of
     result = runExcept (runStateT (runReaderT m pos) oxygenState)
 
 -- General
+
+exploreMapPath :: Program -> (OxygenMap, [RobotMove])
+exploreMapPath prg = (osOxygenMap st, osPath st)
+  where
+    (_, st) = runRobotMonad explore (P2 0 0) (mkOxygenState prg)
 
 exploreMap :: Program -> OxygenMap
 exploreMap prg = osOxygenMap oxygenState
@@ -81,10 +98,12 @@ exploreDir dir = do
     status <- tryMoveRobot dir
     let tile = statusToTile status
     modify (\s -> s{osOxygenMap = HM.insert pos' tile (osOxygenMap s)})
-    when (isOpen tile) $ do
+    if isOpen tile then do
+      logPath pos' Move
       local (const pos') explore
       _ <- tryMoveRobot (oppositeDir dir)
-      return ()
+      logPath pos Move
+    else logPath pos' Explore
 
 oppositeDir :: Direction -> Direction
 oppositeDir North = South
@@ -133,6 +152,12 @@ statusToTile 0 = Wall
 statusToTile 1 = Floor
 statusToTile 2 = Source
 statusToTile _ = error "Invalid status"
+
+data RobotMove = RobotMove Pos Action
+data Action = Move | Explore
+
+logPath :: Pos -> Action -> RobotMonad ()
+logPath pos action = modify (\s -> s{osPath = RobotMove pos action : osPath s})
 
 -- Part 1
 
