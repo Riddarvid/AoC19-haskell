@@ -1,9 +1,9 @@
 module Day8 (solve) where
+import           AoCUtils.Days  (Solver)
 import           Data.Char      (digitToInt)
 import           Data.Foldable  (minimumBy)
 import           Data.Ord       (comparing)
 import           GHC.Utils.Misc (chunkList)
-import           Utils.Solution (Solver)
 
 type Layer = [Int]
 

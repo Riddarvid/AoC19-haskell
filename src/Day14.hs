@@ -3,6 +3,8 @@
 
 module Day14 (solve) where
 
+import           AoCUtils.Days        (Solver)
+import           AoCUtils.Parsing     (numberParser)
 import           Control.Monad        (unless)
 import           Control.Monad.Reader (MonadReader, ReaderT (runReaderT), ask)
 import           Control.Monad.State  (MonadState, State, gets, modify,
@@ -12,9 +14,7 @@ import           Data.HashMap.Strict  (HashMap)
 import qualified Data.HashMap.Strict  as HM
 import           Text.Parsec          (Parsec, char, letter, many1, parse,
                                        sepBy, string)
-import           Utils.Parsing        (numberParser)
 import           Utils.Search         (binaryMax)
-import           Utils.Solution       (Solver)
 
 type Quantity = (String, Integer)
 

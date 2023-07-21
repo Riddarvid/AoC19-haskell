@@ -1,6 +1,6 @@
 module Day4 (solve) where
-import           Text.Parsec    (Parsec, char, digit, many1, parse)
-import           Utils.Solution (Solver)
+import           AoCUtils.Days (Solver)
+import           Text.Parsec   (Parsec, char, digit, many1, parse)
 
 solve :: Solver
 solve input = let

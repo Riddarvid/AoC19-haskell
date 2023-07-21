@@ -5,6 +5,7 @@ module Day13 (
   getStartTiles,
   runGame
 ) where
+import           AoCUtils.Days       (Solver)
 import           AoCUtils.Geometry   (Point (origo), Point2 (P2))
 import           Data.HashMap.Strict (HashMap)
 import qualified Data.HashMap.Strict as HM
@@ -12,7 +13,6 @@ import           GHC.Utils.Misc      (chunkList)
 import           Utils.Intcode       (IntcodeComputer, Program, evalProgram,
                                       isHalted, makeIC, runComputer, setInput)
 import           Utils.Parsing       (parseICProgram)
-import           Utils.Solution      (Solver)
 
 data Tile = Empty | Wall | Block | Paddle | Ball
   deriving (Eq, Show)

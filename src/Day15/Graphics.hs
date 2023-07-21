@@ -1,4 +1,5 @@
 module Day15.Graphics (renderRobotSearch) where
+import           AoCUtils.Graphics (renderSquare, tick)
 import qualified Data.HashMap.Lazy as HM
 import           Data.HashSet      (HashSet)
 import qualified Data.HashSet      as HS
@@ -7,7 +8,6 @@ import           Day15             (Action (..), OxygenMap, Pos,
                                     exploreMapPath)
 import           Graphics.Gloss    (Display (InWindow), Picture, animate, black,
                                     green, greyN, pictures, red, scale, white)
-import           Utils.Graphics    (renderSquare, tick)
 import           Utils.Intcode     (Program)
 
 robotDisplay :: Display

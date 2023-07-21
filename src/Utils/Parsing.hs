@@ -1,9 +1,8 @@
 module Utils.Parsing (
-  parseICProgram,
-  numberParser
+  parseICProgram
 ) where
-import           Text.Parsec (Parsec, char, digit, many1, optionMaybe, parse,
-                              sepBy)
+import           AoCUtils.Parsing (numberParser)
+import           Text.Parsec      (Parsec, char, parse, sepBy)
 
 parseICProgram :: String -> [Integer]
 parseICProgram input = case parse icParser "" input of
@@ -12,11 +11,3 @@ parseICProgram input = case parse icParser "" input of
 
 icParser :: Parsec String () [Integer]
 icParser = numberParser `sepBy` char ','
-
-numberParser :: Parsec String () Integer
-numberParser = do
-  sign <- optionMaybe (char '-')
-  num <- read <$> many1 digit
-  return $ case sign of
-    Nothing -> num
-    Just _  -> (-num)

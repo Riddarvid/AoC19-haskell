@@ -9,8 +9,12 @@ module Day15 (
   RobotMove(..),
   Action(..)
 ) where
+import           AoCUtils.Days        (Solver)
 import           AoCUtils.Geometry    (Point (moveBy, origo), Point2 (P2),
                                        Vector2, downV, leftV, rightV, upV)
+import           AoCUtils.Graphs      (BfsState (bfsNLayers),
+                                       Goal (GFull, GTarget), bfsExplore,
+                                       bfsPath)
 import           Control.Monad.Except (Except, MonadError (throwError),
                                        runExcept, unless)
 import           Control.Monad.Reader (MonadReader (ask, local),
@@ -20,13 +24,9 @@ import           Control.Monad.State  (MonadState, StateT (runStateT), gets,
 import           Data.Foldable        (find)
 import           Data.HashMap.Lazy    (HashMap)
 import qualified Data.HashMap.Lazy    as HM
-import           Utils.Graphs         (BfsState (bfsNLayers),
-                                       Goal (GFull, GTarget), bfsExplore,
-                                       bfsPath)
 import           Utils.Intcode        (IntcodeComputer, Program, makeIC,
                                        runComputer, setInput)
 import           Utils.Parsing        (parseICProgram)
-import           Utils.Solution       (Solver)
 
 solve :: Solver
 solve input = let

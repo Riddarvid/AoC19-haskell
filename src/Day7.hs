@@ -1,6 +1,7 @@
 {-# LANGUAGE InstanceSigs #-}
 
 module Day7 (solve) where
+import           AoCUtils.Days       (Solver)
 import           Data.HashMap.Strict (HashMap)
 import qualified Data.HashMap.Strict as HM
 import           Data.List           (find, permutations)
@@ -9,7 +10,6 @@ import           Utils.Intcode       (IcState (Halted), IntcodeComputer,
                                       Program, getIcState, makeIC, runComputer,
                                       setInput)
 import           Utils.Parsing       (parseICProgram)
-import           Utils.Solution      (Solver)
 
 solve :: Solver
 solve input = let

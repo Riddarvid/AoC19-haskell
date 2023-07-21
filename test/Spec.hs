@@ -1,8 +1,7 @@
+import           AoCUtils.Days        (ExpectedResult, Input, Solution, Solver,
+                                       readInput, readResults, solvers)
 import           Control.Monad        (when)
 import           Control.Monad.Writer (MonadWriter (tell), Writer, execWriter)
-import           Utils.Days           (ExpectedResult, Input, readInput,
-                                       readResults, solvers)
-import           Utils.Solution       (Solution, Solver)
 
 main :: IO ()
 main = do

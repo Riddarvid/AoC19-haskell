@@ -1,5 +1,5 @@
 module Day1 (solve) where
-import           Utils.Solution (Solver)
+import           AoCUtils.Days (Solver)
 
 solve :: Solver
 solve input = let

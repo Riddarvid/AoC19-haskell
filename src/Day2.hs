@@ -1,10 +1,10 @@
 module Day2 (
   solve
 ) where
-import           Data.Foldable  (find)
-import           Utils.Intcode  (Program, execProgram, getMemoryAt)
-import           Utils.Parsing  (parseICProgram)
-import           Utils.Solution (Solver)
+import           AoCUtils.Days (Solver)
+import           Data.Foldable (find)
+import           Utils.Intcode (Program, execProgram, getMemoryAt)
+import           Utils.Parsing (parseICProgram)
 
 solve :: Solver
 solve input = let

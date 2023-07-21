@@ -2,12 +2,12 @@ module Day11.Graphics (
   renderDay11part1,
   renderDay11part2
 ) where
-import qualified Data.HashSet   as HS
-import           Day11          (RobotState (rPos, rWhite), runRobot)
-import           Graphics.Gloss (Display (InWindow), Picture, animate, black,
-                                 pictures, red, scale, white)
-import           Utils.Graphics (renderSquare, tick)
-import           Utils.Intcode  (Program)
+import           AoCUtils.Graphics (renderSquare, tick)
+import qualified Data.HashSet      as HS
+import           Day11             (RobotState (rPos, rWhite), runRobot)
+import           Graphics.Gloss    (Display (InWindow), Picture, animate, black,
+                                    pictures, red, scale, white)
+import           Utils.Intcode     (Program)
 
 day11Display :: Display
 day11Display = InWindow "Day13" (900, 900) (10, 10)

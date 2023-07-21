@@ -1,7 +1,7 @@
 module Day5 (solve) where
-import           Utils.Intcode  (Program, evalProgram)
-import           Utils.Parsing  (parseICProgram)
-import           Utils.Solution (Solver)
+import           AoCUtils.Days (Solver)
+import           Utils.Intcode (Program, evalProgram)
+import           Utils.Parsing (parseICProgram)
 
 solve :: Solver
 solve input = let

@@ -4,8 +4,10 @@ module Day11 (
   RobotState(..)
 ) where
 
+import           AoCUtils.Days       (Solver)
 import           AoCUtils.Geometry   (Point (moveBy, origo), Point2, Vector2,
                                       turnLeft, turnRight, upV)
+import           AoCUtils.Show       (showPoints)
 import           Control.Monad.State (State, evalState, execState, get, gets,
                                       modify)
 import           Data.HashSet        (HashSet)
@@ -13,8 +15,6 @@ import qualified Data.HashSet        as HS
 import           Utils.Intcode       (IntcodeComputer, Program, isHalted,
                                       makeIC, runComputer, setInput)
 import           Utils.Parsing       (parseICProgram)
-import           Utils.Show          (showPoints)
-import           Utils.Solution      (Solver)
 
 data RobotState = RS {
   rPos         :: Point2 Integer,

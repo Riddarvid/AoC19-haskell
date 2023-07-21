@@ -3,6 +3,7 @@ module Day13.Graphics (
   renderDay13part2
 ) where
 import           AoCUtils.Geometry   (Point2)
+import           AoCUtils.Graphics   (renderSquare, tick)
 import           Data.HashMap.Strict (HashMap)
 import qualified Data.HashMap.Strict as HM
 import           Day13               (GameState (gsScore, gsTiles), Tile (..),
@@ -11,7 +12,6 @@ import           Graphics.Gloss      (Color, Display (InWindow), Picture,
                                       animate, black, blue, display, green,
                                       pictures, red, scale, text, translate,
                                       white)
-import           Utils.Graphics      (renderSquare, tick)
 import           Utils.Intcode       (Program)
 
 day13Display :: Display

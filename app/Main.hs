@@ -1,6 +1,7 @@
 module Main (main) where
 
 
+import           AoCUtils.Days       (readInput, showSolution)
 import           Control.Applicative ((<**>), (<|>))
 import           Data.Map            (Map)
 import qualified Data.Map            as Map
@@ -12,9 +13,8 @@ import           Options.Applicative (Parser, ParserInfo, argument, auto,
                                       execParser, fullDesc, header, help,
                                       helper, info, metavar, progDesc, short,
                                       strOption)
-import           Utils.Days          (readInput, solvers)
+import           Utils.Days          (solvers)
 import           Utils.Parsing       (parseICProgram)
-import           Utils.Solution      (showSolution)
 
 data ProgramOpts = Textual Int | Graphical String | TextualAll
 

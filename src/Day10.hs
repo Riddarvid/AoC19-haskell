@@ -1,5 +1,5 @@
 module Day10 (solve, laserAngle, partitionVisible, groupBy, sameAngle, group) where
-import           Utils.Solution    (Solver)
+import           AoCUtils.Days     (Solver)
 
 import           AoCUtils.Geometry (Point (distanceBetween, vectorBetween),
                                     Point2 (P2), Vector2)

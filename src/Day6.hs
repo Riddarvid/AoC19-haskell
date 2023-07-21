@@ -1,8 +1,8 @@
 module Day6 (solve) where
+import           AoCUtils.Days       (Solver)
 import           Data.HashMap.Strict (HashMap)
 import qualified Data.HashMap.Strict as HM
 import           Text.Parsec         (char, digit, letter, many1, parse, (<|>))
-import           Utils.Solution      (Solver)
 
 solve :: Solver
 solve input = let
