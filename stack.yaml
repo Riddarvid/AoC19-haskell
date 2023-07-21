@@ -39,8 +39,9 @@ packages:
 # - git: https://github.com/commercialhaskell/stack.git
 #   commit: e7b331f14bcffb8367cd58fbfc8b40ec7642100a
 #
-# extra-deps: []
-
+extra-deps:
+  - git: https://github.com/Riddarvid/aoc-utils-haskell
+    commit: 2c3383f8ad731b8c3f2141852f85a53a7b845542
 # Override default flag values for local packages and extra-deps
 # flags: {}
 

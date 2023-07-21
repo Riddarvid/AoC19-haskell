@@ -1,11 +1,10 @@
 module Day3 (solve) where
+import           AoCUtils.Geometry   (Point (distanceBetween, distanceFromOrigo, moveBy, origo, scaleBy),
+                                      Point2 (P2), downV, leftV, rightV, upV)
 import           Data.HashMap.Strict (HashMap)
 import qualified Data.HashMap.Strict as HM
 import           Text.Parsec         (Parsec, anyChar, char, digit, many1,
                                       parse, sepBy)
-import           Utils.Geometry      (Point2 (P2), distanceBetween,
-                                      distanceFromOrigo, downV, leftV, moveBy,
-                                      origo, rightV, scaleBy, upV)
 import           Utils.Solution      (Solver)
 
 solve :: Solver

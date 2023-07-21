@@ -4,11 +4,11 @@ module Utils.Graphics (
   renderSquare
 ) where
 
-import           Data.Sequence  (Seq, ViewR ((:>)))
-import qualified Data.Sequence  as Seq
-import           Graphics.Gloss (Color, Picture, color, rectangleSolid,
-                                 translate)
-import           Utils.Geometry (Point2 (P2))
+import           AoCUtils.Geometry (Point2 (P2))
+import           Data.Sequence     (Seq, ViewR ((:>)))
+import qualified Data.Sequence     as Seq
+import           Graphics.Gloss    (Color, Picture, color, rectangleSolid,
+                                    translate)
 
 tick :: Float -> [Picture] -> (Float -> Picture)
 tick interval = tick' interval . Seq.fromList

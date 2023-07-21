@@ -4,12 +4,12 @@ module Day11 (
   RobotState(..)
 ) where
 
+import           AoCUtils.Geometry   (Point (moveBy, origo), Point2, Vector2,
+                                      turnLeft, turnRight, upV)
 import           Control.Monad.State (State, evalState, execState, get, gets,
                                       modify)
 import           Data.HashSet        (HashSet)
 import qualified Data.HashSet        as HS
-import           Utils.Geometry      (Point (moveBy, origo), Point2, Vector2,
-                                      turnLeft, turnRight, upV)
 import           Utils.Intcode       (IntcodeComputer, Program, isHalted,
                                       makeIC, runComputer, setInput)
 import           Utils.Parsing       (parseICProgram)

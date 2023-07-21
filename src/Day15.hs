@@ -9,6 +9,8 @@ module Day15 (
   RobotMove(..),
   Action(..)
 ) where
+import           AoCUtils.Geometry    (Point (moveBy, origo), Point2 (P2),
+                                       Vector2, downV, leftV, rightV, upV)
 import           Control.Monad.Except (Except, MonadError (throwError),
                                        runExcept, unless)
 import           Control.Monad.Reader (MonadReader (ask, local),
@@ -18,8 +20,6 @@ import           Control.Monad.State  (MonadState, StateT (runStateT), gets,
 import           Data.Foldable        (find)
 import           Data.HashMap.Lazy    (HashMap)
 import qualified Data.HashMap.Lazy    as HM
-import           Utils.Geometry       (Point (moveBy, origo), Point2 (P2),
-                                       Vector2, downV, leftV, rightV, upV)
 import           Utils.Graphs         (BfsState (bfsNLayers),
                                        Goal (GFull, GTarget), bfsExplore,
                                        bfsPath)

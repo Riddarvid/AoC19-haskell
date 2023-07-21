@@ -1,12 +1,12 @@
 module Day10 (solve, laserAngle, partitionVisible, groupBy, sameAngle, group) where
-import           Utils.Solution (Solver)
+import           Utils.Solution    (Solver)
 
-import qualified Data.HashSet   as HS
-import           Data.List      (delete, group, groupBy, maximumBy, sortOn)
-import           Data.Maybe     (catMaybes)
-import           Data.Ord       (comparing)
-import           Utils.Geometry (Point (distanceBetween, vectorBetween),
-                                 Point2 (P2), Vector2)
+import           AoCUtils.Geometry (Point (distanceBetween, vectorBetween),
+                                    Point2 (P2), Vector2)
+import qualified Data.HashSet      as HS
+import           Data.List         (delete, group, groupBy, maximumBy, sortOn)
+import           Data.Maybe        (catMaybes)
+import           Data.Ord          (comparing)
 
 solve :: Solver
 solve input = let

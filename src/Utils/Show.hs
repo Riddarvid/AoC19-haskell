@@ -1,9 +1,9 @@
 module Utils.Show (showPoints) where
 
-import           Data.Hashable  (Hashable)
-import           Data.HashSet   (HashSet)
-import qualified Data.HashSet   as HS
-import           Utils.Geometry (Point2 (P2))
+import           AoCUtils.Geometry (Point2 (P2))
+import           Data.Hashable     (Hashable)
+import           Data.HashSet      (HashSet)
+import qualified Data.HashSet      as HS
 
 showPoints :: (Enum a, Hashable a, Ord a) => HashSet (Point2 a) -> String
 showPoints points = unlines $ map (showPointRow points minX maxX) [minY .. maxY]

@@ -1,12 +1,12 @@
 {-# LANGUAGE InstanceSigs #-}
 
 module Day12 (solve) where
-import           Data.Hashable  (Hashable (hashWithSalt))
-import           Data.List      (elemIndex)
-import           Text.Parsec    (parse, string)
-import           Utils.Geometry (Point3 (P3), Vector3, moveBy)
-import           Utils.Parsing  (numberParser)
-import           Utils.Solution (Solver)
+import           AoCUtils.Geometry (Point3 (P3), Vector3, moveBy)
+import           Data.Hashable     (Hashable (hashWithSalt))
+import           Data.List         (elemIndex)
+import           Text.Parsec       (parse, string)
+import           Utils.Parsing     (numberParser)
+import           Utils.Solution    (Solver)
 
 data Moon = Moon (Point3 Integer) (Vector3 Integer)
   deriving (Eq)
