@@ -1,5 +1,6 @@
-import           AoCUtils.Days        (ExpectedResult, Input, Solution, Solver,
-                                       readInput, readResults, solvers)
+import           AoCUtils.Days        (ExpectedResult, Input, Solver, Solution,
+                                       readInput, readResults)
+import Utils.Days (solvers)
 import           Control.Monad        (when)
 import           Control.Monad.Writer (MonadWriter (tell), Writer, execWriter)
 

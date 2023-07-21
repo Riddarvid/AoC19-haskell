@@ -4,7 +4,7 @@
 module Day14 (solve) where
 
 import           AoCUtils.Days        (Solver)
-import           AoCUtils.Parsing     (numberParser)
+import           AoCUtils.Parsing     (signedIntegerParser)
 import           Control.Monad        (unless)
 import           Control.Monad.Reader (MonadReader, ReaderT (runReaderT), ask)
 import           Control.Monad.State  (MonadState, State, gets, modify,
@@ -48,7 +48,7 @@ requirementParser = do
 
 quantityParser :: Parsec String () Quantity
 quantityParser = do
-  n <- numberParser
+  n <- signedIntegerParser
   _ <- char ' '
   material <- many1 letter
   return (material, n)

@@ -3,7 +3,7 @@
 module Day12 (solve) where
 import           AoCUtils.Days     (Solver)
 import           AoCUtils.Geometry (Point3 (P3), Vector3, moveBy)
-import           AoCUtils.Parsing  (numberParser)
+import           AoCUtils.Parsing  (signedIntegerParser)
 import           Data.Hashable     (Hashable (hashWithSalt))
 import           Data.List         (elemIndex)
 import           Text.Parsec       (parse, string)
@@ -34,11 +34,11 @@ parseMoon str = case parse moonParser "" str of
   where
     moonParser = do
       _ <- string "<x="
-      x <- numberParser
+      x <- signedIntegerParser
       _ <- string ", y="
-      y <- numberParser
+      y <- signedIntegerParser
       _ <- string ", z="
-      z <- numberParser
+      z <- signedIntegerParser
       return $ Moon (P3 x y z) (P3 0 0 0)
 
 -- Part 1

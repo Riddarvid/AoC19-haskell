@@ -11,7 +11,7 @@ import           Utils.Days           (solvers)
 import           Utils.Parsing        (parseICProgram)
 
 main :: IO ()
-main = aocMain solvers graphicalMap
+main = aocMain solvers (Just graphicalMap)
 
 -- Visualizations
 
