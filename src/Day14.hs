@@ -4,7 +4,7 @@
 module Day14 (solve) where
 
 import           AoCUtils.Days        (Solver)
-import           AoCUtils.Parsing     (signedIntegerParser)
+import           AoCUtils.Parsec     (signedIntegerParser)
 import           Control.Monad        (unless)
 import           Control.Monad.Reader (MonadReader, ReaderT (runReaderT), ask)
 import           Control.Monad.State  (MonadState, State, gets, modify,

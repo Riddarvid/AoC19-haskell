@@ -3,7 +3,7 @@
 module Day12 (solve) where
 import           AoCUtils.Days     (Solver)
 import           AoCUtils.Geometry (Point3 (P3), Vector3, moveBy)
-import           AoCUtils.Parsing  (signedIntegerParser)
+import           AoCUtils.Parsec  (signedIntegerParser)
 import           Data.Hashable     (Hashable (hashWithSalt))
 import           Data.List         (elemIndex)
 import           Text.Parsec       (parse, string)
